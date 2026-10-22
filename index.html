@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>情緒單字切西瓜</title>
+
+  <style>
+    :root {
+      --sky: #8fe7ff;
+      --sky-dark: #45c8ee;
+      --grass: #50bd4f;
+      --grass-dark: #24943c;
+      --yellow: #ffd447;
+      --orange: #ff9d27;
+      --red: #ff4e61;
+      --dark-red: #d9364d;
+      --green: #2c9d4b;
+      --dark-green: #176934;
+      --ink: #193d45;
+      --white: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family:
+        "Arial Rounded MT Bold",
+        "Noto Sans TC",
+        "Microsoft JhengHei",
+        sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(
+          to bottom,
+          var(--sky) 0%,
+          #c9f5ff 55%,
+          #72d36b 55%,
+          var(--grass) 100%
+        );
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      z-index: -1;
+      border-radius: 50%;
+      opacity: 0.75;
+      pointer-events: none;
+    }
+
+    body::before {
+      width: 160px;
+      height: 70px;
+      top: 80px;
+      left: 5%;
+      background: white;
+      box-shadow:
+        45px -15px 0 8px white,
+        95px 5px 0 2px white;
+    }
+
+    body::after {
+      width: 150px;
+      height: 65px;
+      top: 160px;
+      right: 5%;
+      background: white;
+      box-shadow:
+        50px -20px 0 10px white,
+        100px 2px 0 1px white;
+    }
+
+    .page {
+      width: min(1100px, 94vw);
+      margin: 0 auto;
+      padding: 24px 0 36px;
+    }
+
+    .top-decoration {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 2.2rem;
+    }
+
+    .sun {
+      width: 68px;
+      height: 68px;
+      display: grid;
+      place-items: center;
+      font-size: 2.4rem;
+      background: #ffdf43;
+      border-radius: 50%;
+      box-shadow: 0 5px 0 #e9a92f;
+    }
+
+    .title {
+      margin: 0;
+      text-align: center;
+      color: #fff;
+      font-size: clamp(2rem, 5vw, 4.6rem);
+      line-height: 1;
+      text-shadow:
+        0 5px 0 #ef493d,
+        2px 7px 0 rgba(0, 0, 0, 0.12);
+      letter-spacing: 0.04em;
+    }
+
+    .subtitle {
+      margin: 12px 0 22px;
+      text-align: center;
+      color: #17766d;
+      font-size: clamp(0.9rem, 2vw, 1.25rem);
+      font-weight: 800;
+      letter-spacing: 0.06em;
+    }
+
+    .game-shell {
+      position: relative;
+      padding: 22px;
+      border: 7px solid #fff;
+      border-radius: 32px;
+      background: rgba(255, 255, 255, 0.46);
+      box-shadow:
+        0 10px 0 rgba(27, 114, 67, 0.35),
+        0 20px 40px rgba(27, 114, 67, 0.18);
+      backdrop-filter: blur(3px);
+    }
+
+    .status-bar {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .status-card {
+      min-height: 76px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border: 4px solid rgba(255, 255, 255, 0.9);
+      border-radius: 20px;
+      color: #fff;
+      box-shadow: 0 5px 0 rgba(0, 0, 0, 0.12);
+    }
+
+    .score-card {
+      background: #50b95a;
+    }
+
+    .timer-card {
+      background: #ff6f5d;
+    }
+
+    .round-card {
+      background: #ef9d32;
+    }
+
+    .status-label {
+      font-size: 0.85rem;
+      font-weight: 800;
+      opacity: 0.95;
+    }
+
+    .status-value {
+      margin-top: 2px;
+      font-size: clamp(1.45rem, 3vw, 2.15rem);
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .target-box {
+      position: relative;
+      width: min(460px, 90%);
+      margin: 12px auto 24px;
+      padding: 16px 24px 18px;
+      text-align: center;
+      background: #fffdf2;
+      border: 5px solid #f1a92c;
+      border-radius: 22px;
+      box-shadow: 0 7px 0 #d67828;
+      transform: rotate(-1deg);
+    }
+
+    .target-box::before,
+    .target-box::after {
+      content: "";
+      position: absolute;
+      top: 10px;
+      width: 13px;
+      height: 13px;
+      background: #f1a92c;
+      border-radius: 50%;
+    }
+
+    .target-box::before {
+      left: 18px;
+    }
+
+    .target-box::after {
+      right: 18px;
+    }
+
+    .target-label {
+      display: block;
+      color: #905421;
+      font-size: 1rem;
+      font-weight: 900;
+    }
+
+    .target-word {
+      display: block;
+      margin-top: 2px;
+      color: #f04238;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 900;
+      letter-spacing: 0.03em;
+    }
+
+    .instructions {
+      margin: 0 auto 22px;
+      text-align: center;
+      color: #246652;
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+
+    .watermelon-field {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(100px, 1fr));
+      gap: clamp(12px, 2.5vw, 28px);
+      align-items: center;
+      justify-items: center;
+      min-height: 190px;
+      padding: 12px 4px 22px;
+    }
+
+    .watermelon-button {
+      position: relative;
+      width: clamp(105px, 15vw, 155px);
+      aspect-ratio: 1 / 1;
+      border: 8px solid var(--green);
+      border-radius: 50%;
+      color: #fff;
+      background:
+        radial-gradient(
+          ellipse at 24% 22%,
+          rgba(255,255,255,0.36) 0 4%,
+          transparent 5%
+        ),
+        repeating-linear-gradient(
+          75deg,
+          #ff5a67 0 10px,
+          #f5485c 10px 20px
+        );
+      box-shadow:
+        inset 0 0 0 5px #aee54f,
+        inset 0 -10px 0 rgba(0, 0, 0, 0.1),
+        0 9px 0 var(--dark-green),
+        0 13px 16px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      transition:
+        transform 0.16s ease,
+        filter 0.16s ease,
+        opacity 0.16s ease;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .watermelon-button::before {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border: 3px dashed rgba(255, 255, 255, 0.45);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .watermelon-button::after {
+      content: "";
+      position: absolute;
+      width: 7px;
+      height: 15px;
+      left: 26%;
+      top: 25%;
+      border-radius: 50%;
+      background: #263f3a;
+      box-shadow:
+        32px 31px 0 #263f3a,
+        59px 5px 0 #263f3a,
+        18px 65px 0 #263f3a,
+        72px 66px 0 #263f3a;
+      transform: rotate(28deg);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .watermelon-button:hover {
+      transform: translateY(-7px) rotate(-4deg) scale(1.05);
+      filter: brightness(1.08);
+    }
+
+    .watermelon-button:active {
+      transform: translateY(6px) rotate(5deg) scale(0.94);
+    }
+
+    .watermelon-button:disabled {
+      cursor: default;
+    }
+
+    .word {
+      position: absolute;
+      z-index: 2;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 10px;
+      font-size: clamp(1rem, 2.1vw, 1.5rem);
+      font-weight: 900;
+      text-shadow: 0 2px 2px rgba(0, 0, 0, 0.45);
+    }
+
+    .watermelon-button.correct {
+      animation: cutCorrect 0.55s ease forwards;
+    }
+
+    .watermelon-button.wrong {
+      animation: shakeWrong 0.42s ease;
+      filter: grayscale(0.25) brightness(0.8);
+    }
+
+    .watermelon-button.missed {
+      opacity: 0.32;
+      transform: scale(0.9);
+    }
+
+    @keyframes cutCorrect {
+      0% {
+        transform: scale(1) rotate(0);
+      }
+      30% {
+        transform: scale(1.16) rotate(-10deg);
+      }
+      100% {
+        transform: scale(0) rotate(35deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes shakeWrong {
+      0%, 100% {
+        transform: translateX(0);
+      }
+      25% {
+        transform: translateX(-11px) rotate(-5deg);
+      }
+      75% {
+        transform: translateX(11px) rotate(5deg);
+      }
+    }
+
+    .feedback {
+      min-height: 42px;
+      margin: 4px auto 12px;
+      text-align: center;
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: #25744b;
+    }
+
+    .feedback.good {
+      color: #e84238;
+      animation: popText 0.35s ease;
+    }
+
+    .feedback.bad {
+      color: #a7591e;
+      animation: popText 0.35s ease;
+    }
+
+    @keyframes popText {
+      0% {
+        transform: scale(0.7);
+      }
+      80% {
+        transform: scale(1.14);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 14px;
+      margin-top: 10px;
+      overflow: hidden;
+      border: 3px solid #fff;
+      border-radius: 20px;
+      background: rgba(31, 103, 53, 0.3);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #ffdb40, #ff714c);
+      transition: width 1s linear;
+    }
+
+    .control-row {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .start-button {
+      min-width: 210px;
+      padding: 14px 24px;
+      border: 4px solid #fff;
+      border-radius: 40px;
+      color: #fff;
+      background: linear-gradient(#ffbf3f, #f28c24);
+      box-shadow:
+        0 6px 0 #c96726,
+        0 9px 14px rgba(0, 0, 0, 0.18);
+      font: inherit;
+      font-size: 1.25rem;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+    .start-button:hover {
+      transform: translateY(-3px) scale(1.03);
+      filter: brightness(1.07);
+    }
+
+    .start-button:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #c96726;
+    }
+
+    .decorative-fruit {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      margin-top: 18px;
+      font-size: 2.8rem;
+    }
+
+    .decorative-fruit span:nth-child(2) {
+      font-size: 2rem;
+    }
+
+    .game-over {
+      position: absolute;
+      z-index: 10;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 20px;
+      border-radius: 25px;
+      background: rgba(20, 89, 61, 0.78);
+    }
+
+    .game-over.show {
+      display: grid;
+    }
+
+    .result-card {
+      width: min(430px, 90%);
+      padding: 28px 24px;
+      text-align: center;
+      border: 6px solid #fff;
+      border-radius: 28px;
+      background: #fffdf1;
+      box-shadow: 0 10px 0 rgba(0, 0, 0, 0.2);
+      animation: resultIn 0.35s ease;
+    }
+
+    @keyframes resultIn {
+      from {
+        opacity: 0;
+        transform: scale(0.75) rotate(-4deg);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) rotate(0);
+      }
+    }
+
+    .result-title {
+      margin: 0 0 12px;
+      color: #f04e41;
+      font-size: 2.1rem;
+    }
+
+    .result-score {
+      margin: 8px 0 22px;
+      color: #277a45;
+      font-size: 1.5rem;
+      font-weight: 900;
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        width: min(96vw, 620px);
+        padding-top: 14px;
+      }
+
+      .game-shell {
+        padding: 14px;
+        border-width: 5px;
+      }
+
+      .status-bar {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+      }
+
+      .status-card {
+        min-height: 66px;
+        padding: 8px 5px;
+        border-width: 3px;
+        border-radius: 15px;
+      }
+
+      .status-label {
+        font-size: 0.72rem;
+      }
+
+      .status-value {
+        font-size: 1.35rem;
+      }
+
+      .watermelon-field {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px 8px;
+      }
+
+      .watermelon-button {
+        width: clamp(90px, 23vw, 125px);
+        border-width: 6px;
+      }
+
+      .watermelon-button::after {
+        transform: scale(0.82) rotate(28deg);
+      }
+
+      .instructions {
+        font-size: 0.9rem;
+      }
+    }
+
+    @media (max-width: 390px) {
+      .watermelon-field {
+        gap: 15px 3px;
+      }
+
+      .watermelon-button {
+        width: 91px;
+      }
+
+      .word {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <div class="top-decoration" aria-hidden="true">
+      <span class="sun">☀️</span>
+      <span>🍉 🍹</span>
+    </div>
+
+    <h1 class="title">情緒單字切西瓜</h1>
+    <p class="subtitle">Emotion Word Watermelon Game</p>
+
+    <section class="game-shell" aria-label="情緒單字切西瓜遊戲">
+      <div class="status-bar">
+        <div class="status-card score-card">
+          <span class="status-label">SCORE 分數</span>
+          <span id="score" class="status-value">0</span>
+        </div>
+
+        <div class="status-card timer-card">
+          <span class="status-label">TIME 時間</span>
+          <span id="timer" class="status-value">30</span>
+        </div>
+
+        <div class="status-card round-card">
+          <span class="status-label">ROUNDS 回合</span>
+          <span id="round" class="status-value">0</span>
+        </div>
+      </div>
+
+      <div class="target-box">
+        <span class="target-label">請切出這個單字！ FIND THIS WORD</span>
+        <span id="targetWord" class="target-word">happy</span>
+      </div>
+
+      <p class="instructions">
+        點擊寫有正確英文單字的西瓜，每切中一次可得 10 分！
+      </p>
+
+      <div
+        id="watermelonField"
+        class="watermelon-field"
+        aria-live="polite"
+      ></div>
+
+      <div id="feedback" class="feedback" aria-live="polite">
+        按下開始遊戲，準備切西瓜！
+      </div>
+
+      <div class="progress-track" aria-label="剩餘時間">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
+
+      <div class="control-row">
+        <button id="startButton" class="start-button" type="button">
+          ▶ 開始遊戲
+        </button>
+      </div>
+
+      <div class="decorative-fruit" aria-hidden="true">
+        <span>🍉</span>
+        <span>🌱</span>
+        <span>🍉</span>
+      </div>
+
+      <div id="gameOver" class="game-over">
+        <div class="result-card">
+          <h2 class="result-title">時間到！</h2>
+          <p>你的最終分數是：</p>
+          <p id="finalScore" class="result-score">0 分</p>
+          <button id="restartButton" class="start-button" type="button">
+            ↻ 再玩一次
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const WORDS = [
+      "happy",
+      "angry",
+      "sad",
+      "hungry",
+      "thirsty"
+    ];
+
+    const GAME_TIME = 30;
+
+    const scoreElement = document.getElementById("score");
+    const timerElement = document.getElementById("timer");
+    const roundElement = document.getElementById("round");
+    const targetWordElement = document.getElementById("targetWord");
+    const watermelonField = document.getElementById("watermelonField");
+    const feedbackElement = document.getElementById("feedback");
+    const progressBar = document.getElementById("progressBar");
+    const startButton = document.getElementById("startButton");
+    const restartButton = document.getElementById("restartButton");
+    const gameOverElement = document.getElementById("gameOver");
+    const finalScoreElement = document.getElementById("finalScore");
+
+    let score = 0;
+    let timeLeft = GAME_TIME;
+    let round = 0;
+    let targetWord = "";
+    let timerId = null;
+    let isPlaying = false;
+    let roundLocked = false;
+    let roundToken = 0;
+
+    function shuffle(array) {
+      const copiedArray = [...array];
+
+      for (let i = copiedArray.length - 1; i > 0; i--) {
+        const randomIndex = Math.floor(Math.random() * (i + 1));
+        [copiedArray[i], copiedArray[randomIndex]] = [
+          copiedArray[randomIndex],
+          copiedArray[i]
+        ];
+      }
+
+      return copiedArray;
+    }
+
+    function updateStatus() {
+      scoreElement.textContent = score;
+      timerElement.textContent = timeLeft;
+      roundElement.textContent = round;
+      progressBar.style.width = `${(timeLeft / GAME_TIME) * 100}%`;
+
+      if (timeLeft <= 10) {
+        timerElement.style.color = "#fff4a5";
+      } else {
+        timerElement.style.color = "#ffffff";
+      }
+    }
+
+    function setFeedback(message, type = "") {
+      feedbackElement.textContent = message;
+      feedbackElement.className = "feedback";
+
+      if (type) {
+        feedbackElement.classList.add(type);
+      }
+    }
+
+    function chooseTarget() {
+      const randomIndex = Math.floor(Math.random() * WORDS.length);
+      targetWord = WORDS[randomIndex];
+      targetWordElement.textContent = targetWord;
+    }
+
+    function renderWatermelons() {
+      watermelonField.innerHTML = "";
+      roundLocked = false;
+
+      const wordsForRound = shuffle(WORDS);
+
+      wordsForRound.forEach((word) => {
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.className = "watermelon-button";
+        button.dataset.word = word;
+        button.setAttribute(
+          "aria-label",
+          `切 ${word} 西瓜`
+        );
+
+        const wordLabel = document.createElement("span");
+        wordLabel.className = "word";
+        wordLabel.textContent = word;
+
+        button.appendChild(wordLabel);
+        button.addEventListener("click", () => cutWatermelon(button));
+
+        watermelonField.appendChild(button);
+      });
+    }
+
+    function startGame() {
+      clearInterval(timerId);
+
+      score = 0;
+      timeLeft = GAME_TIME;
+      round = 0;
+      isPlaying = true;
+      roundToken += 1;
+
+      gameOverElement.classList.remove("show");
+      startButton.textContent = "↻ 重新開始";
+      setFeedback("開始！找出正確的情緒單字！");
+
+      updateStatus();
+      nextRound();
+
+      timerId = setInterval(() => {
+        timeLeft -= 1;
+        updateStatus();
+
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function nextRound() {
+      if (!isPlaying) return;
+
+      round += 1;
+      chooseTarget();
+      renderWatermelons();
+      updateStatus();
+    }
+
+    function cutWatermelon(button) {
+      if (!isPlaying || roundLocked) return;
+
+      const selectedWord = button.dataset.word;
+
+      if (selectedWord === targetWord) {
+        roundLocked = true;
+        score += 10;
+
+        button.classList.add("correct");
+
+        const currentToken = roundToken;
+
+        setFeedback("切中了！太棒了！ +10 分", "good");
+        updateStatus();
+
+        document
+          .querySelectorAll(".watermelon-button")
+          .forEach((item) => {
+            item.disabled = true;
+
+            if (item !== button) {
+              item.classList.add("missed");
+            }
+          });
+
+        setTimeout(() => {
+          if (isPlaying && currentToken === roundToken) {
+            nextRound();
+          }
+        }, 500);
+      } else {
+        score = Math.max(0, score - 3);
+        button.classList.add("wrong");
+
+        setFeedback("再試一次！這不是目標單字。 -3 分", "bad");
+        updateStatus();
+
+        setTimeout(() => {
+          button.classList.remove("wrong");
+        }, 450);
+      }
+    }
+
+    function endGame() {
+      isPlaying = false;
+      roundLocked = true;
+      roundToken += 1;
+
+      clearInterval(timerId);
+      timerId = null;
+
+      timerElement.textContent = "0";
+      progressBar.style.width = "0%";
+      finalScoreElement.textContent = `${score} 分`;
+      gameOverElement.classList.add("show");
+
+      document
+        .querySelectorAll(".watermelon-button")
+        .forEach((button) => {
+          button.disabled = true;
+        });
+
+      setFeedback("遊戲結束！看看你得到幾分！");
+    }
+
+    startButton.addEventListener("click", startGame);
+    restartButton.addEventListener("click", startGame);
+
+    updateStatus();
+    chooseTarget();
+    renderWatermelons();
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !isPlaying) {
+        startGame();
+      }
+    });
+  </script>
+</body>
+</html>
